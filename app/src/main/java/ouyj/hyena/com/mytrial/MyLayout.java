@@ -25,7 +25,7 @@ public class MyLayout extends LinearLayout {
             case MotionEvent.ACTION_DOWN:
                 return false;
             case MotionEvent.ACTION_MOVE:
-                return false;
+                return true;
             case MotionEvent.ACTION_UP:
                 return true;
             default:

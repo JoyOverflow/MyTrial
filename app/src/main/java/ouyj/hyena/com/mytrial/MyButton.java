@@ -14,15 +14,17 @@ public class MyButton extends AppCompatButton {
     }
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+
         switch (event.getAction()){
             case MotionEvent.ACTION_DOWN:
-                //getParent().requestDisallowInterceptTouchEvent(true);
+                getParent().requestDisallowInterceptTouchEvent(true);
                 Log.d(MainActivity.TAG, "子视图ACTION_DOWN");
                 break;
             case MotionEvent.ACTION_UP:
                 Log.d(MainActivity.TAG, "子视图ACTION_UP");
                 break;
             case MotionEvent.ACTION_MOVE:
+                //getParent().requestDisallowInterceptTouchEvent(false);
                 Log.d(MainActivity.TAG, "子视图ACTION_MOVE");
         }
         return true;
