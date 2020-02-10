@@ -13,33 +13,39 @@ import ouyj.hyena.com.mytrial.utils.Constants;
 
 public class MessageService extends Service {
 
-    private final Messenger enger = new Messenger(new MsgHandler());
+    //创建服务端信使对象（封装handler）
+    private final Messenger serverMessenger = new Messenger(new MsgHandler());
 
     public MessageService() {
     }
     @Override
     public IBinder onBind(Intent intent) {
         //返回一个IBinder对象给客户端
-        return enger.getBinder();
+        return serverMessenger.getBinder();
     }
 
-
-
+    /**
+     * 可接收客户端数据进行处理，并向客户端发送Message
+     */
     private static class MsgHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
+                //接收客户端的消息并处理
                 case Constants.MSG_CLIENT:
-
+                    //获取客户端的请求数据
+                    String str=msg.getData().getString("clientMessenger");
+                    str=String.format("消息：【%s 】已收到，稍后回复！",str);
                     Bundle bundle = new Bundle();
-                    bundle.putString("chat", "消息已收到，稍后回复！");
+                    bundle.putString("server", str);
 
-                    Messenger client = msg.replyTo;
-                    Message relpyMessage = Message.obtain(null, Constants.MSG_SERVER);
-                    relpyMessage.setData(bundle);
+                    //取出客户端的（服务端回复）处理对象
+                    Messenger clientMessenger = msg.replyTo;
+                    Message message = Message.obtain(null, Constants.MSG_SERVER);
+                    message.setData(bundle);
                     try {
-                        client.send(relpyMessage);
-
+                        //回复客户端的消息
+                        clientMessenger.send(message);
                     } catch (RemoteException e) {
                         e.printStackTrace();
                     }

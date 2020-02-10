@@ -20,7 +20,11 @@
         <service
             android:name=".MessageService"
             android:enabled="true"
-            android:exported="true">
+            android:exported="true"
+            android:process=":remote">
+            <intent-filter>
+                <action android:name="ouyj.hyena.com.mytrial.service" />
+            </intent-filter>
         </service>
     </application>
 
