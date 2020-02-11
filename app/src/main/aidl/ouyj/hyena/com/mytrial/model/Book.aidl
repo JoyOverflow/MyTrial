@@ -1,3 +1,3 @@
-package ouyj.hyena.com.mytrial;
+package ouyj.hyena.com.mytrial.model;
 
 parcelable Book;

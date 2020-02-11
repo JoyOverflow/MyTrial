@@ -1,4 +1,4 @@
-package ouyj.hyena.com.mytrial;
+package ouyj.hyena.com.mytrial.model;
 
 import ouyj.hyena.com.mytrial.model.Book;
 //import com.ryg.chapter_2.aidl.IOnNewBookArrivedListener;
