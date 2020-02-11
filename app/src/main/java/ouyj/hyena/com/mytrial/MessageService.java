@@ -33,8 +33,9 @@ public class MessageService extends Service {
             switch (msg.what) {
                 //接收客户端的消息并处理
                 case Constants.MSG_CLIENT:
+
                     //获取客户端的请求数据
-                    String str=msg.getData().getString("clientMessenger");
+                    String str=msg.getData().getString("client");
                     str=String.format("消息：【%s 】已收到，稍后回复！",str);
                     Bundle bundle = new Bundle();
                     bundle.putString("server", str);
@@ -50,6 +51,7 @@ public class MessageService extends Service {
                         e.printStackTrace();
                     }
                     break;
+
                 default:
                     super.handleMessage(msg);
             }

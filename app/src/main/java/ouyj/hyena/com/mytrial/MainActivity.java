@@ -32,11 +32,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //绑定远程服务（使用连接对象）
-        Intent intent = new Intent("ouyj.hyena.com.mytrial.service");
+        Intent intent = new Intent(this,MessageService.class);
         bindService(intent, connection, Context.BIND_AUTO_CREATE);
     }
     @Override
     protected void onDestroy() {
+        //解绑远程服务
         unbindService(connection);
         super.onDestroy();
     }
@@ -64,11 +65,11 @@ public class MainActivity extends AppCompatActivity {
     private ServiceConnection connection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
 
+            Bundle data = new Bundle();
+            data.putString("client", "你好呀.");
+
             //获取从服务端返回的IBinder对象（构建服务端Messenger）
             serverMessenger = new Messenger(service);
-
-            Bundle data = new Bundle();
-            data.putString("client", "你好.");
 
             //向服务端发送消息（）
             Message msg = Message.obtain(null, Constants.MSG_CLIENT);
