@@ -2,6 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="ouyj.hyena.com.mytrial">
 
+    <permission
+        android:name="ouyj.hyena.com.mytrial.my_permission"
+        android:protectionLevel="normal" />
+    <uses-permission android:name="ouyj.hyena.com.mytrial.my_permission" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -12,17 +17,9 @@
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
-
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-
-        <service
-            android:name=".MessageService"
-            android:enabled="true"
-            android:exported="true"
-            android:process=":remote">
-        </service>
         <service
             android:name=".BookManageService"
             android:enabled="true"
@@ -30,5 +27,4 @@
             android:process=":remote">
         </service>
     </application>
-
 </manifest>

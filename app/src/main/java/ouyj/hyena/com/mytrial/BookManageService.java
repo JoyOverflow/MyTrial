@@ -2,10 +2,13 @@ package ouyj.hyena.com.mytrial;
 
 import android.app.Service;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Binder;
 import android.os.IBinder;
+import android.os.Parcel;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
+import android.os.SystemClock;
 import android.util.Log;
 
 import java.util.List;
@@ -27,8 +30,44 @@ public class BookManageService extends Service {
     private RemoteCallbackList<INewBookListener> mListenerList = new RemoteCallbackList<>();
 
     private Binder mBinder = new IBookManage.Stub() {
+        /**
+         * 调用服务方法时进行验证
+         * @param code
+         * @param data
+         * @param reply
+         * @param flags
+         * @return
+         * @throws RemoteException
+         */
+        @Override
+        public boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
+
+            int check = checkCallingOrSelfPermission("com.ryg.chapter_2.permission.ACCESS_BOOK_SERVICE");
+            Log.d(TAG, "onTransact权限验证结果为" + check);
+            if (check == PackageManager.PERMISSION_DENIED) {
+                //验证不通过返回false
+                return false;
+            }
+
+            //通过uid获取客户端包名进行验证（包名需以指定名称起始）
+            String packageName = null;
+            String[] packages = getPackageManager().getPackagesForUid(getCallingUid());
+            if (packages != null && packages.length > 0) {
+                packageName = packages[0];
+            }
+            Log.d(TAG, "onTransact包名为：" + packageName);
+            if (!packageName.startsWith("ouyj.hyena.com")) {
+                return false;
+            }
+
+            return super.onTransact(code, data, reply, flags);
+        }
+
         @Override
         public List<Book> getBookList() throws RemoteException {
+
+            //模拟耗时操作
+            SystemClock.sleep(5000);
             //返回服务端的数据
             return mBookList;
         }
@@ -81,8 +120,22 @@ public class BookManageService extends Service {
         //启动一个线程
         new Thread(new ServiceWorker()).start();
     }
+
+    /**
+     * 客户端绑定时触发
+     * @param intent
+     * @return
+     */
     @Override
     public IBinder onBind(Intent intent) {
+
+        //在客户端绑定时进行权限验证
+        int check = checkCallingOrSelfPermission("com.ryg.chapter_2.permission.ACCESS_BOOK_SERVICE");
+        if (check == PackageManager.PERMISSION_DENIED) {
+            Log.d(TAG, "onBind权限验证结果为" + check);
+            return null;
+        }
+        //验证通过
         return mBinder;
     }
 
@@ -104,7 +157,7 @@ public class BookManageService extends Service {
                 int bookId = mBookList.size() + 1;
                 Book newBook = new Book(bookId, "new book#" + bookId);
                 try {
-                    //每5秒通知一次客户端（发现新书）
+                    //每5秒通知一次客户端（发现新书）（运行于线程中，不会引发ANR）
                     newBookArrived(newBook);
                 } catch (RemoteException e) {
                     e.printStackTrace();

@@ -11,6 +11,8 @@ import android.os.Message;
 import android.os.RemoteException;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
 
 import java.util.List;
 
@@ -63,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
             //得到服务端的AIDL接口对象（通过返回的Binder转换得到）
             IBookManage bookManager = IBookManage.Stub.asInterface(service);
             mRemoteBookManager = bookManager;
+            Log.d(TAG, "连接已成功：" + Thread.currentThread().getName());
 
             try {
                 List<Book> list = bookManager.getBookList();
@@ -85,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
         }
         public void onServiceDisconnected(ComponentName className) {
             mRemoteBookManager = null;
-            //Log.d(TAG, "断开连接对象" + Thread.currentThread().getName());
+            Log.d(TAG, "连接被断开：" + Thread.currentThread().getName());
         }
     };
     /**
@@ -125,4 +128,28 @@ public class MainActivity extends AppCompatActivity {
         unbindService(mConnection);
         super.onDestroy();
     }
+
+
+    /**
+     * 按钮请求服务端方法（调用放在线程中，不会引发ANR）
+     * @param view
+     */
+    public void onButton1Click(View view) {
+        Toast.makeText(this, "点击按钮！", Toast.LENGTH_SHORT).show();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (mRemoteBookManager != null) {
+                    try {
+                        List<Book> newList = mRemoteBookManager.getBookList();
+                        Log.i(TAG, "单击按钮取得数据：" + newList.toString());
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
+    }
+
+
 }
