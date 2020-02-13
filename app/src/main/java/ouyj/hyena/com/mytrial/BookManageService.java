@@ -42,9 +42,10 @@ public class BookManageService extends Service {
         @Override
         public boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
 
-            int check = checkCallingOrSelfPermission("com.ryg.chapter_2.permission.ACCESS_BOOK_SERVICE");
-            Log.d(TAG, "onTransact权限验证结果为" + check);
+            //验证权限
+            int check = checkCallingOrSelfPermission("ouyj.hyena.com.mytrial.my_permission");
             if (check == PackageManager.PERMISSION_DENIED) {
+                Log.d(TAG, "onTransact 验证结果,服务被拒绝");
                 //验证不通过返回false
                 return false;
             }
@@ -55,7 +56,7 @@ public class BookManageService extends Service {
             if (packages != null && packages.length > 0) {
                 packageName = packages[0];
             }
-            Log.d(TAG, "onTransact包名为：" + packageName);
+            Log.d(TAG, "onTransact 客户端应用包名：" + packageName);
             if (!packageName.startsWith("ouyj.hyena.com")) {
                 return false;
             }
@@ -122,17 +123,16 @@ public class BookManageService extends Service {
     }
 
     /**
-     * 客户端绑定时触发
+     * 客户端（bindService）绑定时触发
      * @param intent
      * @return
      */
     @Override
     public IBinder onBind(Intent intent) {
-
         //在客户端绑定时进行权限验证
-        int check = checkCallingOrSelfPermission("com.ryg.chapter_2.permission.ACCESS_BOOK_SERVICE");
+        int check = checkCallingOrSelfPermission("ouyj.hyena.com.mytrial.my_permission");
         if (check == PackageManager.PERMISSION_DENIED) {
-            Log.d(TAG, "onBind权限验证结果为" + check);
+            Log.d(TAG, "onBind：权限验证结果是，被拒绝！");
             return null;
         }
         //验证通过

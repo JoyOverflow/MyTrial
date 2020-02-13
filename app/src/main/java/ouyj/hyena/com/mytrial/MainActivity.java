@@ -49,17 +49,37 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //绑定远程服务（使用连接对象）
+        //绑定远程服务（使用连接对象）服务端会触发onBind
         Intent intent = new Intent(this, BookManageService.class);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
 
+    /**
+     * 设置Binder对象的DeathRecipient监听
+     * 服务端Binder死亡后（会调用onServiceDisconnected），客户端需重新连接服务
+     */
+    private IBinder.DeathRecipient mDeathRecipient = new IBinder.DeathRecipient() {
+        @Override
+        public void binderDied() {
+            Log.d(TAG, "服务端Binder已被死亡了！:" + Thread.currentThread().getName());
 
+            if (mRemoteBookManager == null)
+                return;
+
+            //为Binder对象解除死亡代理
+            mRemoteBookManager.asBinder().unlinkToDeath(mDeathRecipient, 0);
+            mRemoteBookManager = null;
+            //TODO:这里重新绑定远程Service
+            //bindService(new Intent("demo.action.aidl.IAidlCall")
+            //        .setPackage("com.example.severdemo"), mConnection, BIND_AUTO_CREATE);
+        }
+    };
 
 
     private ServiceConnection mConnection = new ServiceConnection() {
 
+        //服务端绑定成功后，客户端连接成功（触发）
         public void onServiceConnected(ComponentName className, IBinder service) {
 
             //得到服务端的AIDL接口对象（通过返回的Binder转换得到）
@@ -68,16 +88,17 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "连接已成功：" + Thread.currentThread().getName());
 
             try {
+                //为Binder对象设置死亡代理
+                mRemoteBookManager.asBinder().linkToDeath(mDeathRecipient, 0);
+
+                //调用服务端方法（服务端触发onTransact）
                 List<Book> list = bookManager.getBookList();
                 Log.i(TAG, "第一次数据：" + list.toString());
-
                 Book newBook = new Book(6, "Flutter");
                 bookManager.addBook(newBook);
                 Log.i(TAG, "添加记录：" + newBook);
-
                 List<Book> newList = bookManager.getBookList();
                 Log.i(TAG, "第二次数据：" + newList.toString());
-
 
                 //注册（能接收新书信息）
                 bookManager.registerListener(mOnNewBookArrivedListener);
@@ -105,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
     };
 
     /**
-     * 解除远程服务的绑定
+     * 活动回退时触发（解除远程服务的绑定）
      */
     @Override
     protected void onDestroy() {
@@ -115,14 +136,12 @@ public class MainActivity extends AppCompatActivity {
         {
             try {
                 Log.i(TAG, "unregister listener:" + mOnNewBookArrivedListener);
-
                 //在服务端解除注册
                 mRemoteBookManager.unregisterListener(mOnNewBookArrivedListener);
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
         }
-
 
         //解绑远程服务
         unbindService(mConnection);
